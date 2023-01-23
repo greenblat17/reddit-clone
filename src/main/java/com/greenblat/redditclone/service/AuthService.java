@@ -4,7 +4,7 @@ import com.greenblat.redditclone.dto.AuthenticationResponse;
 import com.greenblat.redditclone.dto.LoginRequest;
 import com.greenblat.redditclone.dto.RegisterRequest;
 import com.greenblat.redditclone.exception.RedditException;
-import com.greenblat.redditclone.model.NotificationEmail;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.greenblat.redditclone.model.User;
 import com.greenblat.redditclone.model.VerificationToken;
 import com.greenblat.redditclone.repository.UserRepository;
@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -34,7 +36,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
 
-    @Transactional
     public AuthenticationResponse signup(RegisterRequest registerRequest) {
         User user = new User();
         user.setEmail(registerRequest.getEmail());
@@ -78,7 +79,6 @@ public class AuthService {
         fetchUserAndEnable(verificationToken.get());
     }
 
-    @Transactional
     void fetchUserAndEnable(VerificationToken verificationToken) {
         String username = verificationToken.getUser().getUsername();
         User user = userRepository.findByUsername(username)
@@ -94,5 +94,13 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String authenticationToken = jwtProvider.generateToken(authenticate);
         return new AuthenticationResponse(authenticationToken, loginRequest.getUsername());
+    }
+
+    @Transactional(readOnly = true)
+    public User getCurrentUser() {
+        Jwt principal = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = principal.getSubject();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + username));
     }
 }
