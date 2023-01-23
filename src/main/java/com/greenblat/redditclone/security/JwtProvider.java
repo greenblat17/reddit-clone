@@ -1,7 +1,5 @@
 package com.greenblat.redditclone.security;
 
-import com.greenblat.redditclone.exception.RedditException;
-import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
