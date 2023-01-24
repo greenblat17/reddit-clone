@@ -3,10 +3,7 @@ package com.greenblat.redditclone.mapper;
 import com.github.marlonlom.utilities.timeago.TimeAgo;
 import com.greenblat.redditclone.dto.PostRequest;
 import com.greenblat.redditclone.dto.PostResponse;
-import com.greenblat.redditclone.model.Post;
-import com.greenblat.redditclone.model.Subreddit;
-import com.greenblat.redditclone.model.User;
-import com.greenblat.redditclone.model.VoteType;
+import com.greenblat.redditclone.model.*;
 import com.greenblat.redditclone.repository.CommentRepository;
 import com.greenblat.redditclone.repository.VoteRepository;
 import com.greenblat.redditclone.service.AuthService;
@@ -14,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
@@ -58,6 +56,11 @@ public class PostMapper {
         postResponse.setPostName(post.getPostName());
         postResponse.setUrl(post.getUrl());
         postResponse.setDescription(post.getDescription());
+        postResponse.setDuration(getDuration(post));
+        postResponse.setCommentCount(commentCount(post));
+        postResponse.setVoteCount(post.getVoteCount());
+        postResponse.setDownVote(isPostDownVoted(post));
+        postResponse.setUpVote(isPostUpVoted(post));
 
         return postResponse;
     }
@@ -85,5 +88,32 @@ public class PostMapper {
         }
 
         return subreddit.getName();
+    }
+
+    private Integer commentCount(Post post) {
+        return commentRepository.findByPost(post).size();
+    }
+
+    String getDuration(Post post) {
+        return TimeAgo.using(post.getCreatedDate().toEpochMilli());
+    }
+
+    private boolean isPostUpVoted(Post post) {
+        return checkVoteType(post, VoteType.UPVOTE);
+    }
+
+    private boolean isPostDownVoted(Post post) {
+        return checkVoteType(post, VoteType.DOWNVOTE);
+    }
+
+    private boolean checkVoteType(Post post, VoteType voteType) {
+        if (authService.isLoggedIn()) {
+            Optional<Vote> voteForPostByUser =
+                    voteRepository.findTopByPostAndUserOrderByVoteIdDesc(post,
+                            authService.getCurrentUser());
+            return voteForPostByUser.filter(vote -> vote.getVoteType().equals(voteType))
+                    .isPresent();
+        }
+        return false;
     }
 }
