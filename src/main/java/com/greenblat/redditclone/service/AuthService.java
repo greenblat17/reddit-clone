@@ -4,6 +4,7 @@ import com.greenblat.redditclone.dto.AuthenticationResponse;
 import com.greenblat.redditclone.dto.LoginRequest;
 import com.greenblat.redditclone.dto.RegisterRequest;
 import com.greenblat.redditclone.exception.RedditException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.greenblat.redditclone.model.User;
 import com.greenblat.redditclone.model.VerificationToken;
@@ -102,5 +103,10 @@ public class AuthService {
         String username = principal.getSubject();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + username));
+    }
+
+    public boolean isLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
     }
 }
