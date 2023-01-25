@@ -2,6 +2,7 @@ package com.greenblat.redditclone.service;
 
 import com.greenblat.redditclone.dto.SubredditDto;
 import com.greenblat.redditclone.exception.RedditException;
+import com.greenblat.redditclone.exception.SubredditNotFoundException;
 import com.greenblat.redditclone.mapper.SubredditMapper;
 import com.greenblat.redditclone.model.Subreddit;
 import com.greenblat.redditclone.repository.SubredditRepository;
@@ -39,7 +40,7 @@ public class SubredditService {
 
     public SubredditDto getSubreddit(Long id) {
         Subreddit subreddit = subredditRepository.findById(id).
-                orElseThrow(() -> new RedditException("No subreddit found with id: " + id));
+                orElseThrow(() -> new SubredditNotFoundException("No subreddit found with id: " + id));
         return subredditMapper.mapSubredditToDto(subreddit);
     }
 }
