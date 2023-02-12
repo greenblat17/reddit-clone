@@ -2,6 +2,7 @@ package com.greenblat.redditclone.service;
 
 import com.greenblat.redditclone.dto.CommentDto;
 import com.greenblat.redditclone.exception.PostNotFoundException;
+import com.greenblat.redditclone.exception.RedditException;
 import com.greenblat.redditclone.mapper.CommentMapper;
 import com.greenblat.redditclone.model.Comment;
 import com.greenblat.redditclone.model.NotificationEmail;
@@ -65,5 +66,12 @@ public class CommentService {
                 .stream()
                 .map(commentMapper::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    public boolean containsSwearWords(String comment) {
+        if (comment.contains("shit")) {
+            throw new RedditException("Comments contains unacceptable language");
+        }
+        return false;
     }
 }
