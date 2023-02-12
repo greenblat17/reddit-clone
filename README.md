@@ -1,1 +1,1 @@
-# reddit-clone
+# social-network
